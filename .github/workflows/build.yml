@@ -44,11 +44,14 @@ jobs:
       uses: docker/setup-qemu-action@v1
 
     - name: Build binary
+      # id is used for passing tags in the following steps
+      id: get_latest_tag
       run: |
         git clone https://github.com/AdguardTeam/AdGuardHome.git
         cd AdGuardHome
         latest_tag=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest | jq -r '.tag_name')
         echo "Latest stable tag: $latest_tag"
+        echo "::set-output name=tag::$latest_tag"
         git checkout $latest_tag
         env GOOS='linux' GOARCH='arm' GOARM='7,softfloat' make
         ls -al
@@ -56,6 +59,6 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: $latest_tag
-        body: "AdGuardHome arm 7,softfloat $latest_tag"
-        files: "AdGuardHome"
+        tag_name: ${{ steps.get_latest_tag.outputs.tag }}
+        body: "AdGuardHome arm 7,softfloat ${{ steps.get_latest_tag.outputs.tag }}"
+        files: "./AdGuardHome/AdGuardHome"
