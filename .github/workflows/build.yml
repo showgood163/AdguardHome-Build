@@ -77,8 +77,6 @@ jobs:
       uses: docker/setup-qemu-action@v1
 
     - name: Build binary
-      # id is used for passing tags in the following steps
-      id: get_latest_tag
       run: |
         git clone https://github.com/AdguardTeam/AdGuardHome.git
         cd AdGuardHome
