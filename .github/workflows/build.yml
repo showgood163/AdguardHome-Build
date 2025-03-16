@@ -11,12 +11,45 @@ on:
   pull_request:
     branches:
       - 'main'
+  # Triggers the workflow every hour
+  schedule:
+    - cron: '0 * * * *'
+  # Keep manual trigger and push events
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version_available: ${{ steps.check_version.outputs.new_version_available }}
+      latest_tag: ${{ steps.check_version.outputs.latest_tag }}
+
+    steps:
+    - name: Check latest release
+      id: check_version
+      run: |
+        # Get the latest release tag from AdGuard Home repository
+        latest_tag=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest | jq -r '.tag_name')
+        echo "Latest AdGuard Home version: $latest_tag"
+        echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
+        
+        # Get the latest release in current repository
+        current_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+        echo "Current built version: $current_tag"
+        echo "current_tag=${current_tag}" >> $GITHUB_OUTPUT
+        
+        if [ "$latest_tag" != "$current_tag" ]; then
+          echo "new_version_available=true" >> $GITHUB_OUTPUT
+          echo "New version detected! Will trigger build job."
+        else
+          echo "new_version_available=false" >> $GITHUB_OUTPUT
+          echo "No new version available. Skipping build."
+        fi
+
   build:
-    # The type of runner that the job will run on
+    needs: check-version
+    if: needs.check-version.outputs.new_version_available == 'true'
     runs-on: ubuntu-latest
 
     env:
@@ -27,8 +60,8 @@ jobs:
     steps:
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v4
-      name: checkout repo
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -49,16 +82,13 @@ jobs:
       run: |
         git clone https://github.com/AdguardTeam/AdGuardHome.git
         cd AdGuardHome
-        latest_tag=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest | jq -r '.tag_name')
-        echo "Latest stable tag: $latest_tag"
-        echo "::set-output name=tag::$latest_tag"
-        git checkout $latest_tag
+        git checkout ${{ needs.check-version.outputs.latest_tag }}
         env GOOS='linux' GOARCH='arm' GOARM='7,softfloat' make
         ls -al
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.get_latest_tag.outputs.tag }}
-        body: "AdGuardHome arm 7,softfloat ${{ steps.get_latest_tag.outputs.tag }}"
+        tag_name: ${{ needs.check-version.outputs.latest_tag }}
+        body: "AdGuardHome arm 7,softfloat ${{ needs.check-version.outputs.latest_tag }}"
         files: "./AdGuardHome/AdGuardHome"
