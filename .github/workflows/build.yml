@@ -54,8 +54,8 @@ jobs:
         ls -al
 
     - name: Create GitHub Release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: $latest_tag
-        release_name: "AdGuardHome $latest_tag"
-        artifacts: "./AdGuardHome*"
+        body: "AdGuardHome arm 7,softfloat $latest_tag"
+        files: "AdGuardHome"
