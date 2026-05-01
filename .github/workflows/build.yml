@@ -61,21 +61,21 @@ jobs:
 
     # Fetch and set AdGuardHome Environment Variables
     - name: Set variables
-        run: |
-          RAW_URL="https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/.github/workflows/build.yml"
-          
-          # Fetch, grep for the specific key at the start of the line, take the first match, 
-          # split by colon, and trim spaces/quotes
-          EXTRACTED_GO=$(curl -sL "$RAW_URL" | grep -E "^\s*['\"]?GO_VERSION['\"]?\s*:" | head -n 1 | awk -F: '{print $2}' | tr -d " '\"")
-          EXTRACTED_NODE=$(curl -sL "$RAW_URL" | grep -E "^\s*['\"]?NODE_VERSION['\"]?\s*:" | head -n 1 | awk -F: '{print $2}' | tr -d " '\"")
-          
-          # Print to verify
-          echo "Extracted GO_VERSION: $EXTRACTED_GO"
-          echo "Extracted NODE_VERSION: $EXTRACTED_NODE"
-          
-          # Write to GitHub Environment
-          echo "GO_VERSION=$EXTRACTED_GO" >> "$GITHUB_ENV"
-          echo "NODE_VERSION=$EXTRACTED_NODE" >> "$GITHUB_ENV"
+      run: |
+        RAW_URL="https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/.github/workflows/build.yml"
+        
+        # Fetch, grep for the specific key at the start of the line, take the first match, 
+        # split by colon, and trim spaces/quotes
+        EXTRACTED_GO=$(curl -sL "$RAW_URL" | grep -E "^\s*['\"]?GO_VERSION['\"]?\s*:" | head -n 1 | awk -F: '{print $2}' | tr -d " '\"")
+        EXTRACTED_NODE=$(curl -sL "$RAW_URL" | grep -E "^\s*['\"]?NODE_VERSION['\"]?\s*:" | head -n 1 | awk -F: '{print $2}' | tr -d " '\"")
+        
+        # Print to verify
+        echo "Extracted GO_VERSION: $EXTRACTED_GO"
+        echo "Extracted NODE_VERSION: $EXTRACTED_NODE"
+        
+        # Write to GitHub Environment
+        echo "GO_VERSION=$EXTRACTED_GO" >> "$GITHUB_ENV"
+        echo "NODE_VERSION=$EXTRACTED_NODE" >> "$GITHUB_ENV"
 
     - name: Set up Go
       uses: actions/setup-go@v3
