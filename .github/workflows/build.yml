@@ -95,7 +95,7 @@ jobs:
         git clone https://github.com/AdguardTeam/AdGuardHome.git
         cd AdGuardHome
         git checkout ${{ needs.check-version.outputs.latest_tag }}
-        env CHANNEL='release' GOOS='linux' GOARCH='arm' GOARM='7,softfloat' CGO_ENABLED=0 GOFLAGS="-trimpath -ldflags='-s -w'" make
+        env CHANNEL='release' GOOS='linux' GOARCH='arm' GOARM='7,softfloat' CGO_ENABLED=0 GOFLAGS="-trimpath" LDFLAGS="-s -w" make
         ls -al
 
     - name: Create GitHub Release
